@@ -85,67 +85,67 @@ public class Instructions {
                                 }
                                 break;
                             }
-                            case 10:{
+                            case 8:{
                                 jumpZero(realAddress,realValue.get("register"));
                                 break;
                             }
-                            case 11:{
+                            case 9:{
                                 jumpNotZero(realAddress,realValue.get("register"));
                                 break;
                             }
-                            case 12:{
+                            case 10:{
                                 jumpConditionCode(realAddress,realValue.get("register"));
                                 break;
                             }
-                            case 13:{
+                            case 11:{
                                 jumpUncondition(realAddress);
                                 break;
                             }
-                            case 14:{
+                            case 12:{
                                 jumpAndReturn(realAddress);
                                 break;
                             }
-                            case 15:{
+                            case 13:{
                                 returnFromSub(realValue.get("address"));
                                 break;
                             }
-                            case 16:{
+                            case 14:{
                                 subOneAndBranch(realValue.get("register"), realAddress);
                                 break;
                             }
-                            case 17:{
+                            case 15:{
                                 jumpGreaterOrEqual(realAddress, realValue.get("address"));
                                 break;
                             }
-                            case 20:{
+                            case 16:{
                                 MultiplyRegbyRegister(realValue.get("rx"),realValue.get("ry"));
                             }
 
-                            case 21:{
+                            case 17:{
                                 DivideRegbyRegister(realValue.get("rx"), realValue.get("ry"));
                             }
-                            case 22:{
+                            case 18:{
                                 TestEqualityofRegister(realValue.get("rx"), realValue.get("ry"));
                             }
 
-                            case 23:{
+                            case 19:{
                                 AndofRegister(realValue.get("rx"), realValue.get("ry"));
                             }
 
-                            case 24:{
+                            case 20:{
                                 ORofRegister(realValue.get("rx"), realValue.get("ry"));
                             }
 
-                            case 25:{
+                            case 21:{
                                 NOTofRegister(realValue.get("rx"));
                             }
-                            case 31:{
+                            case 25:{
                                 shiftRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
                             }
-                            case 32:{
+                            case 26:{
                                 rotateRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
                             }
-                            case 41: {
+                            case 33: {
                                 if (!memory.containsKey(realAddress)) {
                                     mainPanel.setWarmingLabel("");
                                 } else {
@@ -153,17 +153,16 @@ public class Instructions {
                                 }
                                 break;
                             }
-                            case 42: {
+                            case 34: {
                                 storeIRtoMem(realAddress, mainPanel.getIRegValue(realValue.get("register")));  //where is the value show or get
                                 break;
                             }
-                            case 61:{
+                            case 49:{
                                 // create devid to record the device id and store it as an argument in function
                                 inputValue(realValue.get("register"),realValue.get("devid"));
-
                             }
 
-                            case 62:{
+                            case 50:{
                                 // create devid to record the device id and store it as an argument in function
                                 outputValue(realValue.get("register"),realValue.get("devid"));
 

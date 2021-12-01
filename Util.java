@@ -37,16 +37,16 @@ public class Util {
             case 5:
             case 6:
             case 7:
+            case 8:
+            case 9:
             case 10:
             case 11:
             case 12:
             case 13:
             case 14:
             case 15:
-            case 16:
-            case 17:
-            case 41:
-            case 42:{
+            case 33:
+            case 34:{
                 String register = data.substring(6, 8);
                 String ix = data.substring(8, 10);
                 String i = data.substring(10, 11);
@@ -58,12 +58,12 @@ public class Util {
                 res.put("address", Integer.parseInt(address, 2));
                 break;
             }
+            case 16:
+            case 17:
+            case 18:
+            case 19:
             case 20:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:{
+            case 21:{
                 String rx = data.substring(6, 8);
                 String ry = data.substring(8, 10);
 
@@ -71,8 +71,8 @@ public class Util {
                 res.put("ry", Integer.parseInt(ry,2));
                 break;
             }
-            case 31:
-            case 32:{
+            case 25:
+            case 26:{
                 String r = data.substring(6,8);
                 String AL = data.substring(8,9);
                 String LR = data.substring(9,10);
@@ -84,14 +84,31 @@ public class Util {
                 res.put("Count", Integer.parseInt(Count,2));
                 break;
             }
-            case 61:
-            case 62:
-            case 63:{
+            case 49:
+            case 50:
+            case 51:{
                 String r = data.substring(6,8);
                 String DevID = data.substring(11,16);
 
                 res.put("register", Integer.parseInt(r,2));
                 res.put("DevID", Integer.parseInt(DevID,2));
+                break;
+            }
+            case 27:
+            case 28:
+            case 29:
+            case 30:
+            case 31:
+            case 40:{
+                String fr = data.substring(6,8);
+                String i = data.substring(8,9);
+                String ix = data.substring(9,11);
+                String address = data.substring(11,16);
+
+                res.put("fr", Integer.parseInt(fr,2));
+                res.put("i", Integer.parseInt(i,2));
+                res.put("ix", Integer.parseInt(ix,2));
+                res.put("address", Integer.parseInt(address,2));
                 break;
             }
         }
