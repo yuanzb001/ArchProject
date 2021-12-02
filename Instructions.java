@@ -3,7 +3,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Instructions {
 
@@ -28,149 +34,11 @@ public class Instructions {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String value = mainPanel.commandText.getText();
-                if(value.length() == 16) {
-                    HashMap<String, Integer> realValue = m_util.decodeData(value);
-                    int realAddress = realValue.get("address") + realValue.get("ix");
-                    if(realAddress < memoryStart){
-                        mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress)+ " is reserved address");
-                        int[] data = new int[]{0,0,0,1};
-                        mainPanel.setMFR(data);
-                    }else {
-                        switch (realValue.get("opCode")) {
-                            case 1: {
-                                if (!memory.containsKey(realAddress)) {
-                                    mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress) + " has no value");
-                                } else {
-                                    loadRegfromMem(realAddress, realValue.get("register"));
-                                }
-                                break;
-                            }
-                            case 2: {
-                                storeRegtoMem(realAddress, mainPanel.getRegValue(realValue.get("register")));  //where is the value show or get
-                                break;
-                            }
-                            case 3: {
-                                if (!memory.containsKey(realAddress)) {
-                                    mainPanel.setWarmingLabel("");
-                                } else {
-                                    loadReWithAddr(realAddress, realValue.get("register"));
-                                }
-                                break;
-                            }
-                            case 4: {                      //Store Instructions into Memory
-                                AddMemoryToRegister(realAddress, realValue.get("register"));
-                                break;
-                            }
-                            case 5: {
-                                SubMemoryFromRegister(realAddress, realValue.get("register"));  //Function to Subtract EA from Register Value
-                                //where is the value show or get
-                                break;
-                            }
-                            case 6: {
-                                int immediate = realValue.get("address");
-                                if (immediate!=0)
-                                {
-                                    //add value to register if and only if immediate address has a value
-                                    AddImmToRegister(immediate, realValue.get("register"));
-                                }
-
-                                break;
-                            }
-                            case 7: {
-                                int immediate = realValue.get("address");
-                                if(immediate!=0)
-                                {
-                                    //subtract value from register if and only if immediate address has a value
-                                    SubImmFromRegister(immediate, realValue.get("register"));
-                                }
-                                break;
-                            }
-                            case 8:{
-                                jumpZero(realAddress,realValue.get("register"));
-                                break;
-                            }
-                            case 9:{
-                                jumpNotZero(realAddress,realValue.get("register"));
-                                break;
-                            }
-                            case 10:{
-                                jumpConditionCode(realAddress,realValue.get("register"));
-                                break;
-                            }
-                            case 11:{
-                                jumpUncondition(realAddress);
-                                break;
-                            }
-                            case 12:{
-                                jumpAndReturn(realAddress);
-                                break;
-                            }
-                            case 13:{
-                                returnFromSub(realValue.get("address"));
-                                break;
-                            }
-                            case 14:{
-                                subOneAndBranch(realValue.get("register"), realAddress);
-                                break;
-                            }
-                            case 15:{
-                                jumpGreaterOrEqual(realAddress, realValue.get("address"));
-                                break;
-                            }
-                            case 16:{
-                                MultiplyRegbyRegister(realValue.get("rx"),realValue.get("ry"));
-                            }
-
-                            case 17:{
-                                DivideRegbyRegister(realValue.get("rx"), realValue.get("ry"));
-                            }
-                            case 18:{
-                                TestEqualityofRegister(realValue.get("rx"), realValue.get("ry"));
-                            }
-
-                            case 19:{
-                                AndofRegister(realValue.get("rx"), realValue.get("ry"));
-                            }
-
-                            case 20:{
-                                ORofRegister(realValue.get("rx"), realValue.get("ry"));
-                            }
-
-                            case 21:{
-                                NOTofRegister(realValue.get("rx"));
-                            }
-                            case 25:{
-                                shiftRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
-                            }
-                            case 26:{
-                                rotateRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
-                            }
-                            case 33: {
-                                if (!memory.containsKey(realAddress)) {
-                                    mainPanel.setWarmingLabel("");
-                                } else {
-                                    loadIRfromMem(realAddress, realValue.get("register"));
-                                }
-                                break;
-                            }
-                            case 34: {
-                                storeIRtoMem(realAddress, mainPanel.getIRegValue(realValue.get("register")));  //where is the value show or get
-                                break;
-                            }
-                            case 49:{
-                                // create devid to record the device id and store it as an argument in function
-                                inputValue(realValue.get("register"),realValue.get("devid"));
-                            }
-
-                            case 50:{
-                                // create devid to record the device id and store it as an argument in function
-                                outputValue(realValue.get("register"),realValue.get("devid"));
-
-                            }
-                        }
-                    }
-                }else{
+                if(value.length() != 16) {
                     mainPanel.setWarmingLabel("Invalid Input");
+                }else{
+                    HashMap<String,Integer> instruction = m_util.decodeData(value);
+                    runInstruction(instruction);
                 }
             }
         });
@@ -204,11 +72,185 @@ public class Instructions {
             public void actionPerformed(ActionEvent e) {
                 mainPanel.consoleText.setText("Test programme 1 starts:\n");
                 program1 = true;
+                String path = "Programme1.txt";
+                List<String> programInstructions = new ArrayList<>();
+                try {
+                    programInstructions = m_util.loadProgramFile(path);
+                    for(int i = 0; i < programInstructions.size(); i ++){
+                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(i));
+                        runInstruction(instruction);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
     }
 
 
+
+    void runInstruction(HashMap<String,Integer> instruction){
+        int realAddress = instruction.get("address") + instruction.get("ix");
+        if(realAddress < memoryStart){
+            mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress)+ " is reserved address");
+            int[] data = new int[]{0,0,0,1};
+            mainPanel.setMFR(data);
+        }else {
+            switch (instruction.get("opCode")) {
+                case 1: {
+                    if (!memory.containsKey(realAddress)) {
+                        mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress) + " has no value");
+                    } else {
+                        loadRegfromMem(realAddress, instruction.get("register"));
+                    }
+                    break;
+                }
+                case 2: {
+                    storeRegtoMem(realAddress, mainPanel.getRegValue(instruction.get("register")));  //where is the value show or get
+                    break;
+                }
+                case 3: {
+                    if (!memory.containsKey(realAddress)) {
+                        mainPanel.setWarmingLabel("");
+                    } else {
+                        loadReWithAddr(realAddress, instruction.get("register"));
+                    }
+                    break;
+                }
+                case 4: {                      //Store Instructions into Memory
+                    AddMemoryToRegister(realAddress, instruction.get("register"));
+                    break;
+                }
+                case 5: {
+                    SubMemoryFromRegister(realAddress, instruction.get("register"));  //Function to Subtract EA from Register Value
+                    //where is the value show or get
+                    break;
+                }
+                case 6: {
+                    int immediate = instruction.get("address");
+                    if (immediate!=0)
+                    {
+                        //add value to register if and only if immediate address has a value
+                        AddImmToRegister(immediate, instruction.get("register"));
+                    }
+
+                    break;
+                }
+                case 7: {
+                    int immediate = instruction.get("address");
+                    if(immediate!=0)
+                    {
+                        //subtract value from register if and only if immediate address has a value
+                        SubImmFromRegister(immediate, instruction.get("register"));
+                    }
+                    break;
+                }
+                case 8:{
+                    jumpZero(realAddress,instruction.get("register"));
+                    break;
+                }
+                case 9:{
+                    jumpNotZero(realAddress,instruction.get("register"));
+                    break;
+                }
+                case 10:{
+                    jumpConditionCode(realAddress,instruction.get("register"));
+                    break;
+                }
+                case 11:{
+                    jumpUncondition(realAddress);
+                    break;
+                }
+                case 12:{
+                    jumpAndReturn(realAddress);
+                    break;
+                }
+                case 13:{
+                    returnFromSub(instruction.get("address"));
+                    break;
+                }
+                case 14:{
+                    subOneAndBranch(instruction.get("register"), realAddress);
+                    break;
+                }
+                case 15:{
+                    jumpGreaterOrEqual(realAddress, instruction.get("address"));
+                    break;
+                }
+                case 16:{
+                    MultiplyRegbyRegister(instruction.get("rx"),instruction.get("ry"));
+                }
+
+                case 17:{
+                    DivideRegbyRegister(instruction.get("rx"), instruction.get("ry"));
+                }
+                case 18:{
+                    TestEqualityofRegister(instruction.get("rx"), instruction.get("ry"));
+                }
+
+                case 19:{
+                    AndofRegister(instruction.get("rx"), instruction.get("ry"));
+                }
+
+                case 20:{
+                    ORofRegister(instruction.get("rx"), instruction.get("ry"));
+                }
+
+                case 21:{
+                    NOTofRegister(instruction.get("rx"));
+                }
+                case 25:{
+                    shiftRegisterByCount(instruction.get("Count"), instruction.get("register"), instruction.get("AL"), instruction.get("LR"));
+                }
+                case 26:{
+                    rotateRegisterByCount(instruction.get("Count"), instruction.get("register"), instruction.get("AL"), instruction.get("LR"));
+                }
+                case 27:{
+                    floatingAddMemory2Reg(instruction.get("fr"), instruction.get("i"), realAddress);
+                }
+                case 28:{
+                    floatingSubtractMeoryFromReg(instruction.get("fr"), instruction.get("i"), realAddress);
+                }
+                case 29:{
+                    vectorAdd(instruction.get("fr"), instruction.get("i"), realAddress);
+                }
+                case 30:{
+                    vectorSubtract(instruction.get("fr"), instruction.get("i"), realAddress);
+                }
+                case 31: {
+                    convert2Floating();
+                }
+                case 33: {
+                    if (!memory.containsKey(realAddress)) {
+                        mainPanel.setWarmingLabel("");
+                    } else {
+                        loadIRfromMem(realAddress, instruction.get("register"));
+                    }
+                    break;
+                }
+                case 34: {
+                    storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("register")));  //where is the value show or get
+                    break;
+                }
+                case 40:{
+                    loadFloatRegFromMemory(mainPanel.getRegValue(instruction.get("fr")), instruction.get("i"), realAddress);
+                }
+                case 41:{
+                    storeFloatReg2Memory(mainPanel.getRegValue(instruction.get(0)), mainPanel.getRegValue(instruction.get(0)), instruction.get("i"), realAddress);
+                }
+                case 49:{
+                    // create devid to record the device id and store it as an argument in function
+                    inputValue(instruction.get("register"),instruction.get("devid"));
+                }
+
+                case 50:{
+                    // create devid to record the device id and store it as an argument in function
+                    outputValue(instruction.get("register"),instruction.get("devid"));
+
+                }
+            }
+        }
+    }
 
     void loadRegfromMem(int address, int index){
         int value = memory.get(address);
@@ -513,6 +555,50 @@ public class Instructions {
         mainPanel.setGPRData(index, re);
     }
 
+    void floatingAddMemory2Reg(int fr, int i, int address){
+        int value = mainPanel.getRegValue(fr);
+        if(i == 0){
+            value+=memory.get(address);
+        }else{
+            value+=memory.get(memory.get(address));
+        }
+        mainPanel.setGPRData(fr, m_util.intToBin(value, 16));
+    }
+
+    void floatingSubtractMeoryFromReg(int fr, int i, int address){
+        int value = mainPanel.getRegValue(fr);
+        if(i == 0){
+            value-=memory.get(address);
+        }else{
+            value-=memory.get(memory.get(address));
+        }
+        mainPanel.setGPRData(fr, m_util.intToBin(value, 16));
+    }
+
+    void vectorAdd(int fr, int i, int address){
+        if(i == 0){
+            int vec1 = memory.get(address);
+            int vec2 = memory.get(address + 1);
+        }else{
+            int vec1 = memory.get(memory.get(address));
+            int vec2 = memory.get(memory.get(address + 1));
+        }
+    }
+
+    void vectorSubtract(int fr, int i, int address){
+        if(i == 0){
+            int vec1 = memory.get(address);
+            int vec2 = memory.get(address + 1);
+        }else{
+            int vec1 = memory.get(memory.get(address));
+            int vec2 = memory.get(memory.get(address + 1));
+        }
+    }
+
+    void convert2Floating(){
+
+    }
+
     void loadIRfromMem(int address, int index){
         int value = memory.get(address);
         mainPanel.setWarmingLabel("The address " + Integer.toString(address) + " is " + Integer.toString(value));
@@ -531,6 +617,30 @@ public class Instructions {
     void storeIRtoMem(int address, int value){
         memory.put(address, value);
         mainPanel.setWarmingLabel("The address " + Integer.toString(address) + " is " + Integer.toString(value));
+    }
+
+    void loadFloatRegFromMemory(int fr, int i, int address){
+        int value1, value2;
+        if(i == 0){
+            value1 = memory.get(address);
+            value2 = memory.get(address+1);
+        }else{
+            value1 = memory.get(memory.get(address));
+            value2 = memory.get(memory.get(address+1));
+        }
+        mainPanel.setGPRData(0, m_util.intToBin(value1, 16));
+        mainPanel.setGPRData(0, m_util.intToBin(value2, 16));
+    }
+
+    void storeFloatReg2Memory(int fr1, int fr2, int i, int address){
+        int value1, value2;
+        if(i == 0){
+            memory.put(address, fr1);
+            memory.put(address, fr2);
+        }else{
+            memory.put(memory.get(address), fr1);
+            memory.put(memory.get(address + 1), fr2);
+        }
     }
 
     void inputValue(int index, int device_id){
@@ -587,8 +697,8 @@ public class Instructions {
 //            {
 //                System.out.println("This is not a character");
 //            }
-
-        }else
+        }
+        else
         {
             System.out.println("Enter Proper Value For Output");
         }

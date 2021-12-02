@@ -1,4 +1,10 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Util {
     int binToInt(int[] data){
@@ -116,5 +122,17 @@ public class Util {
             dataShow[j] = Integer.parseInt(String.valueOf(data.charAt(j)));
         }
         return res;
+    }
+
+    List<String> loadProgramFile(String path) throws IOException {
+        List<String> re = new ArrayList<>();
+        File f = new File(path);
+        BufferedReader reader = null;
+        reader = new BufferedReader(new FileReader(f));
+        String tempString;
+        while ((tempString = reader.readLine()) != null) {
+            re.add(tempString);
+        }
+        return re;
     }
 }
