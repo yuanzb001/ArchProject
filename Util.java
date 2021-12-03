@@ -72,7 +72,7 @@ public class Util {
             case 21:{
                 String rx = data.substring(6, 8);
                 String ry = data.substring(8, 10);
-
+                res.put("opCode", Integer.parseInt(opCode, 2));
                 res.put("rx", Integer.parseInt(rx,2));
                 res.put("ry", Integer.parseInt(ry,2));
                 break;
@@ -83,7 +83,7 @@ public class Util {
                 String AL = data.substring(8,9);
                 String LR = data.substring(9,10);
                 String Count = data.substring(12,16);
-
+                res.put("opCode", Integer.parseInt(opCode, 2));
                 res.put("register", Integer.parseInt(r,2));
                 res.put("AL", Integer.parseInt(AL,2));
                 res.put("LR", Integer.parseInt(LR,2));
@@ -95,7 +95,7 @@ public class Util {
             case 51:{
                 String r = data.substring(6,8);
                 String DevID = data.substring(11,16);
-
+                res.put("opCode", Integer.parseInt(opCode, 2));
                 res.put("register", Integer.parseInt(r,2));
                 res.put("DevID", Integer.parseInt(DevID,2));
                 break;
@@ -110,7 +110,7 @@ public class Util {
                 String i = data.substring(8,9);
                 String ix = data.substring(9,11);
                 String address = data.substring(11,16);
-
+                res.put("opCode", Integer.parseInt(opCode, 2));
                 res.put("fr", Integer.parseInt(fr,2));
                 res.put("i", Integer.parseInt(i,2));
                 res.put("ix", Integer.parseInt(ix,2));

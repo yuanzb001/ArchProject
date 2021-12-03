@@ -20,6 +20,9 @@ public class Instructions {
     private int inputCount = 0;
     private int base = 10; // starting memory location
     private boolean program1 = false;
+    private boolean textEdited = false;
+    List<String> programInstructions = new ArrayList<>();
+    private int registerIndexForIn = 0;
 
     Instructions(){
         mainPanel = new MainPanel();
@@ -43,7 +46,7 @@ public class Instructions {
             }
         });
 
-        mainPanel.consoleText.addKeyListener(new KeyAdapter() {
+        /*mainPanel.consoleText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
@@ -65,7 +68,7 @@ public class Instructions {
                     }
                 }
             }
-        });
+        });*/
 
         mainPanel.testProgram1Button.addActionListener(new ActionListener() {
             @Override
@@ -73,15 +76,44 @@ public class Instructions {
                 mainPanel.consoleText.setText("Test programme 1 starts:\n");
                 program1 = true;
                 String path = "Programme1.txt";
-                List<String> programInstructions = new ArrayList<>();
                 try {
                     programInstructions = m_util.loadProgramFile(path);
-                    for(int i = 0; i < programInstructions.size(); i ++){
-                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(i));
+                    while(!programInstructions.isEmpty()){
+                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(0));
                         runInstruction(instruction);
+                        programInstructions.remove(0);
+                        if(textEdited){
+                            break;
+                        }
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                }
+            }
+        });
+
+        mainPanel.consoleText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                super.keyTyped(e);
+                if(e.getKeyChar() == '\n'){
+                    String charValue = mainPanel.consoleText.getText();
+                    textEdited = false;
+                    mainPanel.consoleText.setEditable(textEdited);
+
+                    String[] tmp = charValue.split(String.valueOf('\n'));
+                    int chartest = Integer.parseInt(tmp[tmp.length-1],10);
+
+                    int[] Char_ARR = m_util.intToBin(chartest,16); // create the resulting register value to a binary
+                    mainPanel.setGPRData(registerIndexForIn, Char_ARR);
+                    while (!programInstructions.isEmpty()){
+                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(0));
+                        runInstruction(instruction);
+                        programInstructions.remove(0);
+                        if(textEdited){
+                            break;
+                        }
+                    }
                 }
             }
         });
@@ -90,40 +122,50 @@ public class Instructions {
 
 
     void runInstruction(HashMap<String,Integer> instruction){
-        int realAddress = instruction.get("address") + instruction.get("ix");
-        if(realAddress < memoryStart){
-            mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress)+ " is reserved address");
-            int[] data = new int[]{0,0,0,1};
-            mainPanel.setMFR(data);
-        }else {
-            switch (instruction.get("opCode")) {
-                case 1: {
+        int realAddress;
+        switch (instruction.get("opCode")) {
+            case 1: {
+                realAddress = instruction.get("address") + instruction.get("ix");
+                if(checkAddress(realAddress)){
                     if (!memory.containsKey(realAddress)) {
                         mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress) + " has no value");
                     } else {
                         loadRegfromMem(realAddress, instruction.get("register"));
                     }
-                    break;
                 }
-                case 2: {
+                break;
+            }
+            case 2: {
+                realAddress = instruction.get("address") + instruction.get("ix");
+                if(checkAddress(realAddress)) {
                     storeRegtoMem(realAddress, mainPanel.getRegValue(instruction.get("register")));  //where is the value show or get
-                    break;
                 }
+                break;
+            }
                 case 3: {
-                    if (!memory.containsKey(realAddress)) {
-                        mainPanel.setWarmingLabel("");
-                    } else {
-                        loadReWithAddr(realAddress, instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        if (!memory.containsKey(realAddress)) {
+                            mainPanel.setWarmingLabel("");
+                        } else {
+                            loadReWithAddr(realAddress, instruction.get("register"));
+                        }
                     }
                     break;
                 }
                 case 4: {                      //Store Instructions into Memory
-                    AddMemoryToRegister(realAddress, instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        AddMemoryToRegister(realAddress, instruction.get("register"));
+                    }
                     break;
                 }
                 case 5: {
-                    SubMemoryFromRegister(realAddress, instruction.get("register"));  //Function to Subtract EA from Register Value
-                    //where is the value show or get
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        SubMemoryFromRegister(realAddress, instruction.get("register"));  //Function to Subtract EA from Register Value
+                        //where is the value show or get
+                    }
                     break;
                 }
                 case 6: {
@@ -146,23 +188,38 @@ public class Instructions {
                     break;
                 }
                 case 8:{
-                    jumpZero(realAddress,instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpZero(realAddress, instruction.get("register"));
+                    }
                     break;
                 }
                 case 9:{
-                    jumpNotZero(realAddress,instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpNotZero(realAddress, instruction.get("register"));
+                    }
                     break;
                 }
                 case 10:{
-                    jumpConditionCode(realAddress,instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpConditionCode(realAddress, instruction.get("register"));
+                    }
                     break;
                 }
                 case 11:{
-                    jumpUncondition(realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpUncondition(realAddress);
+                    }
                     break;
                 }
                 case 12:{
-                    jumpAndReturn(realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpAndReturn(realAddress);
+                    }
                     break;
                 }
                 case 13:{
@@ -170,87 +227,131 @@ public class Instructions {
                     break;
                 }
                 case 14:{
-                    subOneAndBranch(instruction.get("register"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        subOneAndBranch(instruction.get("register"), realAddress);
+                    }
                     break;
                 }
                 case 15:{
-                    jumpGreaterOrEqual(realAddress, instruction.get("address"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        jumpGreaterOrEqual(realAddress, instruction.get("address"));
+                    }
                     break;
                 }
                 case 16:{
                     MultiplyRegbyRegister(instruction.get("rx"),instruction.get("ry"));
+                    break;
                 }
 
                 case 17:{
                     DivideRegbyRegister(instruction.get("rx"), instruction.get("ry"));
+                    break;
                 }
                 case 18:{
                     TestEqualityofRegister(instruction.get("rx"), instruction.get("ry"));
+                    break;
                 }
 
                 case 19:{
                     AndofRegister(instruction.get("rx"), instruction.get("ry"));
+                    break;
                 }
 
                 case 20:{
                     ORofRegister(instruction.get("rx"), instruction.get("ry"));
+                    break;
                 }
 
                 case 21:{
                     NOTofRegister(instruction.get("rx"));
+                    break;
                 }
                 case 25:{
                     shiftRegisterByCount(instruction.get("Count"), instruction.get("register"), instruction.get("AL"), instruction.get("LR"));
+                    break;
                 }
                 case 26:{
                     rotateRegisterByCount(instruction.get("Count"), instruction.get("register"), instruction.get("AL"), instruction.get("LR"));
+                    break;
                 }
                 case 27:{
-                    floatingAddMemory2Reg(instruction.get("fr"), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        floatingAddMemory2Reg(instruction.get("fr"), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 28:{
-                    floatingSubtractMeoryFromReg(instruction.get("fr"), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        floatingSubtractMeoryFromReg(instruction.get("fr"), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 29:{
-                    vectorAdd(instruction.get("fr"), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        vectorAdd(instruction.get("fr"), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 30:{
-                    vectorSubtract(instruction.get("fr"), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        vectorSubtract(instruction.get("fr"), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 31: {
                     convert2Floating();
                 }
                 case 33: {
-                    if (!memory.containsKey(realAddress)) {
-                        mainPanel.setWarmingLabel("");
-                    } else {
-                        loadIRfromMem(realAddress, instruction.get("register"));
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        if (!memory.containsKey(realAddress)) {
+                            mainPanel.setWarmingLabel("");
+                        } else {
+                            loadIRfromMem(realAddress, instruction.get("register"));
+                        }
                     }
                     break;
                 }
                 case 34: {
-                    storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("register")));  //where is the value show or get
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("register")));  //where is the value show or get
+                    }
                     break;
                 }
                 case 40:{
-                    loadFloatRegFromMemory(mainPanel.getRegValue(instruction.get("fr")), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        loadFloatRegFromMemory(mainPanel.getRegValue(instruction.get("fr")), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 41:{
-                    storeFloatReg2Memory(mainPanel.getRegValue(instruction.get(0)), mainPanel.getRegValue(instruction.get(0)), instruction.get("i"), realAddress);
+                    realAddress = instruction.get("address") + instruction.get("ix");
+                    if(checkAddress(realAddress)) {
+                        storeFloatReg2Memory(mainPanel.getRegValue(instruction.get(0)), mainPanel.getRegValue(instruction.get(0)), instruction.get("i"), realAddress);
+                    }
+                    break;
                 }
                 case 49:{
                     // create devid to record the device id and store it as an argument in function
-                    inputValue(instruction.get("register"),instruction.get("devid"));
+                    inputValue(instruction.get("register"),instruction.get("DevID"));
+                    break;
                 }
 
                 case 50:{
                     // create devid to record the device id and store it as an argument in function
-                    outputValue(instruction.get("register"),instruction.get("devid"));
-
+                    outputValue(instruction.get("register"),instruction.get("DevID"));
+                    break;
                 }
             }
         }
-    }
 
     void loadRegfromMem(int address, int index){
         int value = memory.get(address);
@@ -645,6 +746,7 @@ public class Instructions {
 
     void inputValue(int index, int device_id){
 
+        registerIndexForIn = index;
         String charValue;
         int chartest;
 
@@ -653,14 +755,8 @@ public class Instructions {
         {
             String device = "Console Keyboard";
 
-            // Zhuobin you would need to edit this
-            charValue = mainPanel.consoleText.getText();
-
-            String[] tmp = charValue.split(String.valueOf('\n'));
-            chartest = Integer.parseInt(tmp[tmp.length-1],10);
-
-            int[] Char_ARR = m_util.intToBin(chartest,16); // create the resulting register value to a binary
-            mainPanel.setGPRData(index, Char_ARR);
+            textEdited = true;
+            mainPanel.consoleText.setEditable(textEdited);
         }else if(device_id==2)
         {
             String device = "Card Reader";
@@ -701,6 +797,17 @@ public class Instructions {
         else
         {
             System.out.println("Enter Proper Value For Output");
+        }
+    }
+
+    boolean checkAddress(int realAddress){
+        if(realAddress < memoryStart){
+            mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress)+ " is reserved address");
+            int[] data = new int[]{0,0,0,1};
+            mainPanel.setMFR(data);
+            return false;
+        }else {
+            return true;
         }
     }
 

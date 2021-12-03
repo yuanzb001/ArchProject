@@ -420,22 +420,6 @@ public class MainPanel {
     private JLabel mfr_label;
     private JLabel pri_label;
     public JTextField commandText;
-    public JLabel value1;
-    public JLabel value2;
-    public JLabel value3;
-    public JLabel value4;
-    public JLabel value5;
-    public JLabel value6;
-    public JLabel value7;
-    public JLabel value8;
-    public JLabel value9;
-    public JLabel value10;
-    public JLabel value11;
-    public JLabel value12;
-    public JLabel value13;
-    public JLabel value14;
-    public JLabel value15;
-    public JLabel value16;
     private JLabel label_command;
     private JLabel WarmingLabel;
     public JButton runButton;
@@ -855,6 +839,8 @@ public class MainPanel {
         irLabelList.add(ir_label15);
         irLabelList.add(ir_label16);
 
+        consoleText.setEditable(false);
+
         gpr0_ld_Bu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1076,6 +1062,7 @@ public class MainPanel {
             }
 
         });
+
 
     }
 
