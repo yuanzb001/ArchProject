@@ -23,8 +23,11 @@ public class Instructions {
     private boolean textEdited = false;
     List<String> programInstructions = new ArrayList<>();
     private int registerIndexForIn = 0;
+    private int currentPC = 61;
+    private int endIndex = 0;
 
     Instructions(){
+        memory = new HashMap<Integer,Integer>();
         mainPanel = new MainPanel();
         m_util = new Util();
         JFrame frame = new JFrame("MainPanel");
@@ -78,10 +81,23 @@ public class Instructions {
                 String path = "Programme1.txt";
                 try {
                     programInstructions = m_util.loadProgramFile(path);
-                    while(!programInstructions.isEmpty()){
-                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(0));
-                        runInstruction(instruction);
-                        programInstructions.remove(0);
+                    int start_address = 61;
+                    currentPC = start_address;
+
+                    for(int i = 0; i < programInstructions.size(); i++){
+                        memory.put(start_address, i);
+                        start_address ++;
+                    }
+                    endIndex = start_address;
+                    while(currentPC < endIndex){
+                        //need to store instructions into memory
+                        HashMap<String, Integer> instruction;
+                        if(memory.containsKey(currentPC)) {
+                            instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
+                            runInstruction(instruction);
+                            currentPC ++;
+                            mainPanel.setPCData(m_util.intToBin(currentPC,12));
+                        }
                         if(textEdited){
                             break;
                         }
@@ -106,10 +122,11 @@ public class Instructions {
 
                     int[] Char_ARR = m_util.intToBin(chartest,16); // create the resulting register value to a binary
                     mainPanel.setGPRData(registerIndexForIn, Char_ARR);
-                    while (!programInstructions.isEmpty()){
-                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(0));
+                    while (currentPC < endIndex){
+                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
                         runInstruction(instruction);
-                        programInstructions.remove(0);
+                        currentPC ++;
+                        mainPanel.setPCData(m_util.intToBin(currentPC,12));
                         if(textEdited){
                             break;
                         }
@@ -125,7 +142,7 @@ public class Instructions {
         int realAddress;
         switch (instruction.get("opCode")) {
             case 1: {
-                realAddress = instruction.get("address") + instruction.get("ix");
+                realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                 if(checkAddress(realAddress)){
                     if (!memory.containsKey(realAddress)) {
                         mainPanel.setWarmingLabel("The address " + Integer.toString(realAddress) + " has no value");
@@ -136,14 +153,14 @@ public class Instructions {
                 break;
             }
             case 2: {
-                realAddress = instruction.get("address") + instruction.get("ix");
+                realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                 if(checkAddress(realAddress)) {
                     storeRegtoMem(realAddress, mainPanel.getRegValue(instruction.get("register")));  //where is the value show or get
                 }
                 break;
             }
                 case 3: {
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         if (!memory.containsKey(realAddress)) {
                             mainPanel.setWarmingLabel("");
@@ -154,14 +171,14 @@ public class Instructions {
                     break;
                 }
                 case 4: {                      //Store Instructions into Memory
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         AddMemoryToRegister(realAddress, instruction.get("register"));
                     }
                     break;
                 }
                 case 5: {
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         SubMemoryFromRegister(realAddress, instruction.get("register"));  //Function to Subtract EA from Register Value
                         //where is the value show or get
@@ -188,35 +205,35 @@ public class Instructions {
                     break;
                 }
                 case 8:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpZero(realAddress, instruction.get("register"));
                     }
                     break;
                 }
                 case 9:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpNotZero(realAddress, instruction.get("register"));
                     }
                     break;
                 }
                 case 10:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpConditionCode(realAddress, instruction.get("register"));
                     }
                     break;
                 }
                 case 11:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpUncondition(realAddress);
                     }
                     break;
                 }
                 case 12:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpAndReturn(realAddress);
                     }
@@ -227,14 +244,14 @@ public class Instructions {
                     break;
                 }
                 case 14:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         subOneAndBranch(instruction.get("register"), realAddress);
                     }
                     break;
                 }
                 case 15:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         jumpGreaterOrEqual(realAddress, instruction.get("address"));
                     }
@@ -277,28 +294,28 @@ public class Instructions {
                     break;
                 }
                 case 27:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         floatingAddMemory2Reg(instruction.get("fr"), instruction.get("i"), realAddress);
                     }
                     break;
                 }
                 case 28:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         floatingSubtractMeoryFromReg(instruction.get("fr"), instruction.get("i"), realAddress);
                     }
                     break;
                 }
                 case 29:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         vectorAdd(instruction.get("fr"), instruction.get("i"), realAddress);
                     }
                     break;
                 }
                 case 30:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         vectorSubtract(instruction.get("fr"), instruction.get("i"), realAddress);
                     }
@@ -308,32 +325,32 @@ public class Instructions {
                     convert2Floating();
                 }
                 case 33: {
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         if (!memory.containsKey(realAddress)) {
                             mainPanel.setWarmingLabel("");
                         } else {
-                            loadIRfromMem(realAddress, instruction.get("register"));
+                            loadIRfromMem(realAddress, instruction.get("ix"));
                         }
                     }
                     break;
                 }
                 case 34: {
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
-                        storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("register")));  //where is the value show or get
+                        storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("ix")));  //where is the value show or get
                     }
                     break;
                 }
                 case 40:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         loadFloatRegFromMemory(mainPanel.getRegValue(instruction.get("fr")), instruction.get("i"), realAddress);
                     }
                     break;
                 }
                 case 41:{
-                    realAddress = instruction.get("address") + instruction.get("ix");
+                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
                     if(checkAddress(realAddress)) {
                         storeFloatReg2Memory(mainPanel.getRegValue(instruction.get(0)), mainPanel.getRegValue(instruction.get(0)), instruction.get("i"), realAddress);
                     }
@@ -422,43 +439,37 @@ public class Instructions {
     void jumpZero(int address, int register){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         if(mainPanel.getRegValue(register) == 0){
-            mainPanel.setPCData(m_util.intToBin(address,12));
-        }else{
-            mainPanel.setPCData(m_util.intToBin(pc + 1, 12));
+            currentPC = address;
         }
     }
 
     void jumpNotZero(int address, int register){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         if(mainPanel.getRegValue(register) != 0){
-            mainPanel.setPCData(m_util.intToBin(address,12));
-        }else{
-            mainPanel.setPCData(m_util.intToBin(pc + 1, 12));
+            currentPC = address;
         }
     }
 
     void jumpConditionCode(int address, int cc){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         if(cc < 2){
-            mainPanel.setPCData(m_util.intToBin(address,12));
-        }else{
-            mainPanel.setPCData(m_util.intToBin(pc + 1, 12));
+            currentPC = address;
         }
     }
 
     void jumpUncondition(int address){
-        mainPanel.setPCData(m_util.intToBin(address,12));
+        currentPC = address;
     }
 
     void jumpAndReturn(int address){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         mainPanel.setGPRData(3, m_util.intToBin(pc + 1, 16));
-        mainPanel.setPCData(m_util.intToBin(address, 12));
+        currentPC = address;
     }
 
     void returnFromSub(int immed){
         mainPanel.setGPRData(0, m_util.intToBin(immed, 16));
-        mainPanel.setPCData(m_util.intToBin(mainPanel.getRegValue(3), 12));
+        currentPC = mainPanel.getRegValue(3);
     }
 
     void subOneAndBranch(int r, int address){
@@ -466,18 +477,13 @@ public class Instructions {
             mainPanel.setGPRData(r,m_util.intToBin(mainPanel.getRegValue(r) - 1, 16));
         }
         if(mainPanel.getRegValue(r) > 0){
-            mainPanel.setPCData(m_util.intToBin(address, 12));
-        }else{
-            mainPanel.setPCData(m_util.intToBin(m_util.binToInt(mainPanel.getPCValue()) + 1, 12));
+            currentPC = address;
         }
     }
 
     void jumpGreaterOrEqual(int address, int r){
         if(mainPanel.getRegValue(r) >= 0){
-            mainPanel.setPCData(m_util.intToBin(address, 12));
-        }
-        else{
-            mainPanel.setPCData(m_util.intToBin(m_util.binToInt(mainPanel.getPCValue()) + 1, 12));
+            currentPC = address;
         }
     }
 
@@ -712,7 +718,7 @@ public class Instructions {
                 data[i] = Integer.parseInt(String.valueOf(temp.charAt(i - (16 - temp.length()))));
             }
         }
-        mainPanel.setIXRData(index -1, data);
+        mainPanel.setIXRData(index - 1, data);
     }
 
     void storeIRtoMem(int address, int value){

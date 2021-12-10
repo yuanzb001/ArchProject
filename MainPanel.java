@@ -1,18 +1,9 @@
-import org.w3c.dom.DOMStringList;
-
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
-import java.awt.desktop.SystemEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class MainPanel {
     private Util m_util = new Util();
@@ -263,8 +254,8 @@ public class MainPanel {
     private JRadioButton pc_rb8;
     private JRadioButton pc_rb9;
     private JRadioButton pc_rb10;
-    private JRadioButton pc_rb12;
     private JRadioButton pc_rb11;
+    private JRadioButton pc_rb12;
     private JRadioButton mar_rb1;
     private JRadioButton mar_rb2;
     private JRadioButton mar_rb3;

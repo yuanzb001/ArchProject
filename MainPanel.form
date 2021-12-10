@@ -2222,16 +2222,7 @@
                   <text value=""/>
                 </properties>
               </component>
-              <component id="6ae9a" class="javax.swing.JRadioButton" binding="pc_rb11">
-                <constraints>
-                  <grid row="0" column="13" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <enabled value="false"/>
-                  <text value=""/>
-                </properties>
-              </component>
-              <component id="c777" class="javax.swing.JRadioButton" binding="pc_rb12">
+              <component id="c777" class="javax.swing.JRadioButton" binding="pc_rb11">
                 <constraints>
                   <grid row="0" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -2341,6 +2332,15 @@
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
               </hspacer>
+              <component id="cded0" class="javax.swing.JRadioButton" binding="pc_rb12">
+                <constraints>
+                  <grid row="0" column="13" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <enabled value="false"/>
+                  <text value=""/>
+                </properties>
+              </component>
             </children>
           </grid>
           <grid id="89638" binding="mar_panel" layout-manager="GridLayoutManager" row-count="2" column-count="14" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
