@@ -36,6 +36,9 @@ public class Util {
         String opCode = data.substring(0,6);
         int a = Integer.parseInt("1",8);
         switch (Integer.parseInt(opCode,2)){
+            case 0:
+                res.put("opCode", Integer.parseInt(opCode, 2));
+                break;
             case 1:
             case 2:
             case 3:

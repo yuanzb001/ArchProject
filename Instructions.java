@@ -93,7 +93,14 @@ public class Instructions {
                         //need to store instructions into memory
                         HashMap<String, Integer> instruction;
                         if(memory.containsKey(currentPC)) {
+                            System.out.println(currentPC);
+                            if(currentPC == 154){
+                                System.out.println("test");
+                            }
                             instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
+                            if(instruction.get("opCode") == 0){
+                                break;
+                            }
                             runInstruction(instruction);
                             currentPC ++;
                             mainPanel.setPCData(m_util.intToBin(currentPC,12));
@@ -123,7 +130,14 @@ public class Instructions {
                     int[] Char_ARR = m_util.intToBin(chartest,16); // create the resulting register value to a binary
                     mainPanel.setGPRData(registerIndexForIn, Char_ARR);
                     while (currentPC < endIndex){
+                        System.out.println(currentPC);
+                        if(currentPC == 153){
+                            System.out.println("test");
+                        }
                         HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
+                        if(instruction.get("opCode") == 0){
+                            break;
+                        }
                         runInstruction(instruction);
                         currentPC ++;
                         mainPanel.setPCData(m_util.intToBin(currentPC,12));
@@ -325,7 +339,7 @@ public class Instructions {
                     convert2Floating();
                 }
                 case 33: {
-                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
+                    realAddress = instruction.get("address");
                     if(checkAddress(realAddress)) {
                         if (!memory.containsKey(realAddress)) {
                             mainPanel.setWarmingLabel("");
@@ -336,7 +350,7 @@ public class Instructions {
                     break;
                 }
                 case 34: {
-                    realAddress = instruction.get("address") + mainPanel.getIRegValue(instruction.get("ix")-1);
+                    realAddress = instruction.get("address");
                     if(checkAddress(realAddress)) {
                         storeIRtoMem(realAddress, mainPanel.getIRegValue(instruction.get("ix")));  //where is the value show or get
                     }
@@ -407,7 +421,7 @@ public class Instructions {
     void AddMemoryToRegister(int real_address, int index){
         // Function adds memory to register selected
         int regvalue = mainPanel.getRegValue(index);
-        int AMR_Value = real_address + regvalue;
+        int AMR_Value = memory.get(real_address) + regvalue;
         int[] AMR_ARR = m_util.intToBin(AMR_Value,16);
         mainPanel.setGPRData(index, AMR_ARR);
     }
@@ -415,7 +429,7 @@ public class Instructions {
     void SubMemoryFromRegister(int real_address, int index){
         int regvalue = mainPanel.getRegValue(index); // find the value of the register
         //function subtracts memory from register selected
-        int SMR_Value = regvalue -  real_address;
+        int SMR_Value = regvalue -  memory.get(real_address);
         int[] SMR_ARR = m_util.intToBin(SMR_Value,16); // create the resulting register value to a binary
         mainPanel.setGPRData(index, SMR_ARR);
     }
@@ -439,14 +453,14 @@ public class Instructions {
     void jumpZero(int address, int register){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         if(mainPanel.getRegValue(register) == 0){
-            currentPC = address;
+            currentPC = address - 1;
         }
     }
 
     void jumpNotZero(int address, int register){
         int pc = m_util.binToInt(mainPanel.getPCValue());
         if(mainPanel.getRegValue(register) != 0){
-            currentPC = address;
+            currentPC = address - 1;
         }
     }
 
@@ -473,10 +487,8 @@ public class Instructions {
     }
 
     void subOneAndBranch(int r, int address){
-        if(mainPanel.getRegValue(r) != 0){
-            mainPanel.setGPRData(r,m_util.intToBin(mainPanel.getRegValue(r) - 1, 16));
-        }
-        if(mainPanel.getRegValue(r) > 0){
+        int flag = mainPanel.getRegValue(r) - 1;
+        if(flag > 0){
             currentPC = address;
         }
     }
@@ -515,16 +527,10 @@ public class Instructions {
                 if(mainPanel.getRegValue(ry) == 0){
                     mainPanel.setWarmingLabel("DIVZERO");
                 }else {
-                    int value_avg = mainPanel.getRegValue(rx) / mainPanel.getRegValue(ry);
-                    int[] answer = m_util.intToBin(value_avg, 32);
-                    int[] highOrder = new int[16];
-                    int[] lowOrder = new int[16];
-                    for(int i = 0; i < 16; i++){
-                        highOrder[i] = answer[i];
-                        lowOrder[i] = answer[16+i];
-                    }
-                    mainPanel.setGPRData(rx, highOrder);
-                    mainPanel.setGPRData(ry, lowOrder);
+                    int value_quotient = mainPanel.getRegValue(rx) / mainPanel.getRegValue(ry);
+                    int value_remainder = mainPanel.getRegValue(rx) % mainPanel.getRegValue(ry);
+                    mainPanel.setGPRData(rx, m_util.intToBin(value_quotient, 16));
+                    mainPanel.setGPRData(rx + 1, m_util.intToBin(value_remainder, 16));
                 }
             }
         }
