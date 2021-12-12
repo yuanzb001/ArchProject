@@ -25,6 +25,8 @@ public class Instructions {
     private int registerIndexForIn = 0;
     private int currentPC = 61;
     private int endIndex = 0;
+    private boolean isProgram2 = false;
+    String paragraph;
 
     Instructions(){
         memory = new HashMap<Integer,Integer>();
@@ -73,6 +75,26 @@ public class Instructions {
             }
         });*/
 
+        mainPanel.testProgram2Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    List<String> instructions = m_util.loadProgramFile("Programme2.txt");
+                    if(instructions.isEmpty()){
+                        mainPanel.consoleText.setText("No Programme 2 file!");
+                    }else {
+                        paragraph = m_util.loadContextFile("paragraph.txt") + "\n";
+                        mainPanel.consoleText.setText(paragraph);
+                        mainPanel.consoleText.setEditable(true);
+                        isProgram2 = true;
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         mainPanel.testProgram1Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -81,6 +103,7 @@ public class Instructions {
                 String path = "Programme1.txt";
                 try {
                     programInstructions = m_util.loadProgramFile(path);
+                    mainPanel.consoleText.setText(m_util.getFilePath());
                     int start_address = 61;
                     currentPC = start_address;
 
@@ -120,29 +143,53 @@ public class Instructions {
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
                 if(e.getKeyChar() == '\n'){
-                    String charValue = mainPanel.consoleText.getText();
-                    textEdited = false;
-                    mainPanel.consoleText.setEditable(textEdited);
-
-                    String[] tmp = charValue.split(String.valueOf('\n'));
-                    int chartest = Integer.parseInt(tmp[tmp.length-1],10);
-
-                    int[] Char_ARR = m_util.intToBin(chartest,16); // create the resulting register value to a binary
-                    mainPanel.setGPRData(registerIndexForIn, Char_ARR);
-                    while (currentPC < endIndex){
-                        System.out.println(currentPC);
-                        if(currentPC == 153){
-                            System.out.println("test");
+                    if(isProgram2){
+                        int number = -1;
+                        String context = mainPanel.consoleText.getText();
+                        String[] tmp = context.split(String.valueOf('\n'));
+                        String searchWord = tmp[tmp.length - 1];
+                        String[] index = context.split("\\.");
+                        boolean findFlag = false;
+                        for(int i = 0; i < index.length; i++){
+                            String[] words = index[i].split(" ");
+                            for(int j = 0; j < words.length; j++){
+                                if(words[j].equals(searchWord)){
+                                    String re = "Word:" + searchWord + ";\n sentence number:" + String.valueOf(i + 1) + "; word number:" + String.valueOf(j + 1 );
+                                    mainPanel.consoleText.setText(re);
+                                    findFlag = true;
+                                    break;
+                                }
+                            }
+                            if(findFlag){
+                                break;
+                            }
                         }
-                        HashMap<String,Integer> instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
-                        if(instruction.get("opCode") == 0){
-                            break;
-                        }
-                        runInstruction(instruction);
-                        currentPC ++;
-                        mainPanel.setPCData(m_util.intToBin(currentPC,12));
-                        if(textEdited){
-                            break;
+                        isProgram2 = false;
+                    }else {
+                        String charValue = mainPanel.consoleText.getText();
+                        textEdited = false;
+                        mainPanel.consoleText.setEditable(textEdited);
+
+                        String[] tmp = charValue.split(String.valueOf('\n'));
+                        int chartest = Integer.parseInt(tmp[tmp.length - 1], 10);
+
+                        int[] Char_ARR = m_util.intToBin(chartest, 16); // create the resulting register value to a binary
+                        mainPanel.setGPRData(registerIndexForIn, Char_ARR);
+                        while (currentPC < endIndex) {
+                            System.out.println(currentPC);
+                            if (currentPC == 153) {
+                                System.out.println("test");
+                            }
+                            HashMap<String, Integer> instruction = m_util.decodeData(programInstructions.get(memory.get(currentPC)));
+                            if (instruction.get("opCode") == 0) {
+                                break;
+                            }
+                            runInstruction(instruction);
+                            currentPC++;
+                            mainPanel.setPCData(m_util.intToBin(currentPC, 12));
+                            if (textEdited) {
+                                break;
+                            }
                         }
                     }
                 }

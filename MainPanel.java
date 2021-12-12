@@ -416,6 +416,7 @@ public class MainPanel {
     public JButton runButton;
     public JTextPane consoleText;
     public JButton testProgram1Button;
+    public JButton testProgram2Button;
 
     private ArrayList<JRadioButton> gpr0RadList = new ArrayList<JRadioButton>();
     private ArrayList<JLabel> gpr0LabelList = new ArrayList<JLabel>();

@@ -7,6 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Util {
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    private  String filePath = "";
+
     int binToInt(int[] data){
         int re = 0;
         int flag = 1;
@@ -130,11 +137,25 @@ public class Util {
     List<String> loadProgramFile(String path) throws IOException {
         List<String> re = new ArrayList<>();
         File f = new File(path);
+        filePath = f.getAbsolutePath();
         BufferedReader reader = null;
         reader = new BufferedReader(new FileReader(f));
         String tempString;
         while ((tempString = reader.readLine()) != null) {
             re.add(tempString);
+        }
+        return re;
+    }
+
+    String loadContextFile(String path) throws IOException {
+        File f = new File(path);
+        filePath = f.getAbsolutePath();
+        BufferedReader reader = null;
+        reader = new BufferedReader(new FileReader(f));
+        String tempString;
+        String re = "";
+        while ((tempString = reader.readLine()) != null) {
+            re = re + tempString;
         }
         return re;
     }
